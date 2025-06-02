@@ -9,9 +9,7 @@ import (
 )
 
 func TestAccApihubCuration_apihubCurationBasic_Update(t *testing.T) {
-	// This is added for reference, but the test needs to be skipped as it needs API hub instance as a prerequisite
-	// But the support for that resources is not yet complete.
-	t.Skip()
+	t.Parallel()
 
 	context := map[string]interface{}{
 		"random_suffix": acctest.RandString(t, 10),
@@ -23,6 +21,7 @@ func TestAccApihubCuration_apihubCurationBasic_Update(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"time": {},
 		},
+		CheckDestroy: testAccCheckApihubCurationDestroyProducer(t),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccApihubCuration_apihubCuration_basic(context),
