@@ -7,10 +7,14 @@ import (
 	"io"
 	"log"
 	"os"
+	"os"
 	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/terraform-google-conversion/v6/pkg/caiasset"
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclparse"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
@@ -34,6 +38,11 @@ type TgcMetadataPayload struct {
 	RawConfig        string                       `json:"raw_config"`
 	ResourceMetadata map[string]*ResourceMetadata `json:"resource_metadata"`
 	PrimaryResource  string                       `json:"primary_resource"`
+}
+
+type ResourceTestData struct {
+	ParsedRawConfig  map[string]interface{} `json:"parsed_raw_config"`
+	ResourceMetadata `json:"resource_metadata"`
 }
 
 type ResourceTestData struct {
@@ -96,11 +105,11 @@ func ReadTestsDataFromGcs() (map[string]TgcMetadataPayload, error) {
 func prepareTestData(testName string) (map[string]ResourceTestData, string, error) {
 	var err error
 	cacheMutex.Lock()
-	defer cacheMutex.Unlock()
 	TestsMetadata, err = ReadTestsDataFromGcs()
 	if err != nil {
 		return nil, "", err
 	}
+	cacheMutex.Unlock()
 
 	testMetadata := TestsMetadata[testName]
 	resourceMetadata := testMetadata.ResourceMetadata
@@ -235,15 +244,4 @@ func convertToConfigMap(resources []Resource) map[string]map[string]interface{} 
 	}
 
 	return configMap
-}
-
-// Converts the slice of assets to map with the asset name as the key
-func convertToAssetMap(assets []caiasset.Asset) map[string]caiasset.Asset {
-	assetMap := make(map[string]caiasset.Asset)
-
-	for _, asset := range assets {
-		asset.Resource.Data = nil
-		assetMap[asset.Type] = asset
-	}
-	return assetMap
 }
