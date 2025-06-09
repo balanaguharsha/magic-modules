@@ -21,11 +21,8 @@ create_url: projects/{{project}}/locations/{{location}}/plugins/{{plugin}}/insta
 id_format: projects/{{project}}/locations/{{location}}/plugins/{{plugin}}/instances/{{plugin_instance_id}}
 import_format:
 - projects/{{project}}/locations/{{location}}/plugins/{{plugin}}/instances/{{plugin_instance_id}}
-examples:
-- name: name_of_example_file
-  primary_resource_id: example
-  vars:
-    resource_name: test-resource
+custom_code:
+  custom_import: 'templates/terraform/custom_import/apihub_plugin_instance.go.tmpl'
 autogen_async: true
 async:
   operation:
@@ -80,6 +77,11 @@ properties:
     Format:
     `projects/{project}/locations/{location}/plugins/{plugin}/instances/{instance}`
   output: true
+- name: disable
+  type: Boolean
+  default_value: false
+  update_url: projects/{{project}}/locations/{{location}}/plugins/{{plugin}}/instances/{{plugin_instance_id}}:enableAction
+  description: The display name for this plugin instance. Max length is 255 characters.
 - name: authConfig
   type: NestedObject
   description: AuthConfig represents the authentication information.
@@ -183,14 +185,6 @@ properties:
       API_KEY
       OAUTH2_CLIENT_CREDENTIALS
     required: true
-- name: additionalConfig
-  type: NestedObject
-  description: |-
-    The additional information for this plugin instance corresponding to the
-    additional config template of the plugin. This information will be sent to
-    plugin hosting service on each call to plugin hosted service.
-    The key will be the config_variable_template.display_name to uniquely
-    identify the config variable.
 - name: state
   type: String
   description: |-
