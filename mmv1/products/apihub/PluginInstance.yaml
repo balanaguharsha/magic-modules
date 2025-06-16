@@ -22,10 +22,13 @@ id_format: projects/{{project}}/locations/{{location}}/plugins/{{plugin}}/instan
 import_format:
 - projects/{{project}}/locations/{{location}}/plugins/{{plugin}}/instances/{{plugin_instance_id}}
 examples:
-- name: name_of_example_file
-  primary_resource_id: example
-  vars:
-    resource_name: test-resource
+  - name: apihub_plugin_instance_basic
+    primary_resource_id: apihub_plugin_instance_basic
+    vars:
+      curation_id: 'test'
+    # API hub instance needs to be created before this, and end to end creation of that resource using Terraform is not yet supported.
+    exclude_test: true
+    external_providers: ["time"]
 autogen_async: true
 async:
   operation:
@@ -80,6 +83,11 @@ properties:
     Format:
     `projects/{project}/locations/{location}/plugins/{plugin}/instances/{instance}`
   output: true
+- name: disable
+  type: Boolean
+  default_value: false
+  update_url: projects/{{project}}/locations/{{location}}/plugins/{{plugin}}/instances/{{plugin_instance_id}}:enableAction
+  description: The display name for this plugin instance. Max length is 255 characters.
 - name: authConfig
   type: NestedObject
   description: AuthConfig represents the authentication information.
@@ -183,14 +191,6 @@ properties:
       API_KEY
       OAUTH2_CLIENT_CREDENTIALS
     required: true
-- name: additionalConfig
-  type: NestedObject
-  description: |-
-    The additional information for this plugin instance corresponding to the
-    additional config template of the plugin. This information will be sent to
-    plugin hosting service on each call to plugin hosted service.
-    The key will be the config_variable_template.display_name to uniquely
-    identify the config variable.
 - name: state
   type: String
   description: |-
@@ -228,11 +228,13 @@ properties:
   type: Array
   description: The action status for the plugin instance.
   required: true
+  default_from_api: true
   item_type:
     type: NestedObject
     properties:
     - name: hubInstanceAction
       type: NestedObject
+      output: true
       description: The execution status for the plugin instance.
       properties:
       - name: currentExecutionState
@@ -247,6 +249,7 @@ properties:
       - name: lastExecution
         type: NestedObject
         description: The result of the last execution of the plugin instance.
+        output: true
         properties:
         - name: result
           type: String
@@ -291,11 +294,13 @@ properties:
       output: true
     - name: scheduleCronExpression
       type: String
+      default_from_api: true
       description: |-
         The schedule for this plugin instance action. This can only be set if the
         plugin supports API_HUB_SCHEDULE_TRIGGER mode for this action.
     - name: curationConfig
       type: NestedObject
+      default_from_api: true
       description: The curation information for this plugin instance.
       properties:
       - name: customCuration
@@ -311,6 +316,7 @@ properties:
           required: true
       - name: curationType
         type: String
+        default_from_api: true
         description: |2-
 
           Possible values:
@@ -320,6 +326,7 @@ properties:
         required: true
     - name: scheduleTimeZone
       type: String
+      default_from_api: true
       description: |-
         The time zone for the schedule cron expression. If not provided, UTC will
         be used.
